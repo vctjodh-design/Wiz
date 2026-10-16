@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Browser Control"
+description = "A browser automation workspace for opening websites in a real Chromium session, navigating tabs, clicking and typing, scrolling pages, and capturing screenshots. It works without third-party integrations."
+version = "1.0.0"
+id = "artifacts/browser-control"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24888
+
+[services.development]
+run = "pnpm --filter @workspace/browser-control run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/browser-control", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/browser-control/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24888"
+BASE_PATH = "/"

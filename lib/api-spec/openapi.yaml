@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: browser
+    description: Remote Chromium browser sessions and controls
 paths:
   /healthz:
     get:
@@ -24,7 +26,229 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /browser/sessions:
+    post:
+      operationId: createBrowserSession
+      tags: [browser]
+      summary: Start a browser session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBrowserSessionInput"
+      responses:
+        "201":
+          description: Browser session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserState"
+        "400":
+          description: Invalid URL or request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+        "503":
+          description: Browser capacity reached or Chromium unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+  /browser/sessions/{sessionId}:
+    get:
+      operationId: getBrowserSession
+      tags: [browser]
+      summary: Get current browser session state and screenshot
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: Current browser state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserState"
+        "404":
+          description: Session not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+    delete:
+      operationId: closeBrowserSession
+      tags: [browser]
+      summary: Close a browser session
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "204":
+          description: Browser session closed
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+  /browser/sessions/{sessionId}/navigate:
+    post:
+      operationId: navigateBrowser
+      tags: [browser]
+      summary: Navigate the active tab to a URL
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NavigateBrowserInput"
+      responses:
+        "200":
+          description: Updated browser state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserState"
+        "400":
+          description: Invalid or blocked URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+  /browser/sessions/{sessionId}/action:
+    post:
+      operationId: performBrowserAction
+      tags: [browser]
+      summary: Click, type, scroll, navigate history, or reload the active page
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrowserActionInput"
+      responses:
+        "200":
+          description: Updated browser state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserState"
+        "400":
+          description: Invalid browser action
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+  /browser/sessions/{sessionId}/tabs:
+    post:
+      operationId: createBrowserTab
+      tags: [browser]
+      summary: Open a new browser tab
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBrowserTabInput"
+      responses:
+        "201":
+          description: Updated browser state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserState"
+        "400":
+          description: Invalid or blocked URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+        "429":
+          description: Tab limit reached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+  /browser/sessions/{sessionId}/tabs/{tabId}/activate:
+    post:
+      operationId: activateBrowserTab
+      tags: [browser]
+      summary: Switch to a browser tab
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/TabId"
+      responses:
+        "200":
+          description: Updated browser state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserState"
+        "404":
+          description: Session or tab not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
+  /browser/sessions/{sessionId}/tabs/{tabId}:
+    delete:
+      operationId: closeBrowserTab
+      tags: [browser]
+      summary: Close a browser tab
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/TabId"
+      responses:
+        "200":
+          description: Updated browser state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserState"
+        "404":
+          description: Session or tab not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserError"
 components:
+  parameters:
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+    TabId:
+      name: tabId
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +257,98 @@ components:
           type: string
       required:
         - status
+    BrowserError:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    BrowserTab:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        title:
+          type: string
+        active:
+          type: boolean
+      required: [id, url, title, active]
+    BrowserState:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        activeTabId:
+          type: string
+        tabs:
+          type: array
+          items:
+            $ref: "#/components/schemas/BrowserTab"
+        screenshot:
+          type: string
+          description: Screenshot as a PNG data URL
+        currentUrl:
+          type: string
+        title:
+          type: string
+        viewportWidth:
+          type: integer
+        viewportHeight:
+          type: integer
+      required:
+        - sessionId
+        - activeTabId
+        - tabs
+        - screenshot
+        - currentUrl
+        - title
+        - viewportWidth
+        - viewportHeight
+    CreateBrowserSessionInput:
+      type: object
+      properties:
+        url:
+          type: string
+          minLength: 1
+          maxLength: 2048
+    NavigateBrowserInput:
+      type: object
+      properties:
+        url:
+          type: string
+          minLength: 1
+          maxLength: 2048
+      required: [url]
+    CreateBrowserTabInput:
+      type: object
+      properties:
+        url:
+          type: string
+          maxLength: 2048
+      required: [url]
+    BrowserActionInput:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [click, type, key, scroll, back, forward, reload]
+        x:
+          type: number
+          minimum: 0
+        y:
+          type: number
+          minimum: 0
+        text:
+          type: string
+          maxLength: 10000
+        key:
+          type: string
+          maxLength: 50
+        deltaY:
+          type: number
+          minimum: -5000
+          maximum: 5000
+      required: [action]
 
