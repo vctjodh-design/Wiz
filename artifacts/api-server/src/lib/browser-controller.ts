@@ -730,20 +730,27 @@ export async function createBrowserTab(sessionId: string, url: string) {
     );
   }
 
-  let safeUrl: string;
-  try {
-    safeUrl = await validatePublicWebUrl(url);
-  } catch (error) {
-    if (error instanceof BrowserPolicyError) {
-      throw new BrowserOperationError(error.message, 400);
+  let safeUrl: string | undefined;
+  if (url !== "about:blank") {
+    try {
+      safeUrl = await validatePublicWebUrl(url);
+    } catch (error) {
+      if (error instanceof BrowserPolicyError) {
+        throw new BrowserOperationError(error.message, 400);
+      }
+      throw error;
     }
-    throw error;
   }
 
   const page = await session.context.newPage();
   registerPage(session, page);
   try {
-    await page.goto(safeUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    if (safeUrl) {
+      await page.goto(safeUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 30_000,
+      });
+    }
     return await getBrowserState(sessionId);
   } catch {
     await page.close().catch(() => undefined);

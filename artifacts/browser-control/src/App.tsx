@@ -87,7 +87,7 @@ function isGoogleBlockedPage(value: string) {
 function isAccessBlockedPage(state: BrowserState) {
   if (isGoogleBlockedPage(state.currentUrl)) return false;
   const pageText = `${state.title}\n${state.pageContent.text}\n${state.pageContent.markdown.slice(0, 5_000)}`;
-  return /access denied|\bforbidden\b|403\s*forbidden|forbidden\s*403|(?:you (?:do not|don't) have|lack) permission to access|request (?:has been )?blocked|you have been blocked|unusual traffic|automated (?:queries|requests|traffic)|verify (?:that )?you are (?:a )?human|checking your browser|security check|not authorized to view/i.test(pageText);
+  return /access denied|403\s*forbidden|forbidden\s*403|request (?:has been )?blocked|unusual traffic|automated (?:queries|requests|traffic)|verify (?:that )?you are (?:a )?human|checking your browser|security check|not authorized to view/i.test(pageText);
 }
 
 function SyncTabsOption({
@@ -607,7 +607,7 @@ function BrowserConsole() {
                     disabled={busy}
                     testId="toggle-sync-tabs-start"
                   />
-                   <p className="text-[10px] leading-[1.65] text-[#858982]">This browser runs on the server, not your phone. Some sites block its network or automated access; use “Open on device” when needed.</p>
+                   <p className="text-[10px] leading-[1.65] text-[#858982]">Search for something or enter a domain or complete web address. Sites may block automated browsing.</p>
                   <button type="submit" disabled={busy} className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#d96f51] px-4 text-[12px] font-extrabold text-white shadow-[0_5px_12px_rgba(173,79,52,.16)] transition hover:bg-[#c95f43] disabled:cursor-not-allowed disabled:opacity-50" data-testid="button-start-session">
                     {createSession.isPending ? <><LoaderCircle size={15} className="animate-spin" /> {syncTabs ? 'Opening 25 synced tabs…' : 'Opening browser…'}</> : <>Start browser session <ArrowRight size={15} /></>}
                   </button>
