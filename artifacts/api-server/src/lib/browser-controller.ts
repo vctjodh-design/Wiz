@@ -1,4 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { constants as fsConstants } from "node:fs";
+import { access } from "node:fs/promises";
+import { delimiter, join } from "node:path";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
 import { logger } from "./logger";
 import {
@@ -14,6 +17,13 @@ const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 const VIEWPORT = { width: 1440, height: 900 };
 const MAX_PAGE_TEXT_LENGTH = 50_000;
 const MAX_PAGE_LINKS = 200;
+const CHROMIUM_EXECUTABLE_NAMES = [
+  "google-chrome",
+  "google-chrome-stable",
+  "chrome",
+  "chromium",
+  "chromium-browser",
+];
 
 export class BrowserOperationError extends Error {
   constructor(
@@ -83,12 +93,35 @@ async function settleAfterNavigationAction(
   }
 }
 
+async function findInstalledChromium(): Promise<string> {
+  const pathDirectories = (process.env.PATH ?? "").split(delimiter);
+  for (const name of CHROMIUM_EXECUTABLE_NAMES) {
+    for (const directory of pathDirectories) {
+      if (!directory) continue;
+      const candidate = join(directory, name);
+      try {
+        await access(candidate, fsConstants.X_OK);
+        return candidate;
+      } catch {
+        // Continue through PATH until an installed Chrome/Chromium binary is found.
+      }
+    }
+  }
+
+  throw new BrowserOperationError(
+    "No installed Chrome or Chromium browser was found on the server.",
+    503,
+  );
+}
+
 async function ensureBrowser(): Promise<Browser> {
   if (browser?.isConnected()) return browser;
 
   try {
+    const executablePath = await findInstalledChromium();
     proxy ??= await startSecureBrowserProxy();
     browser = await chromium.launch({
+      executablePath,
       headless: true,
       proxy: {
         server: proxy.url,
@@ -101,6 +134,7 @@ async function ensureBrowser(): Promise<Browser> {
     await proxy?.close().catch(() => undefined);
     proxy = undefined;
     browser = undefined;
+    if (error instanceof BrowserOperationError) throw error;
     logger.error(
       { errorName: error instanceof Error ? error.name : "UnknownError" },
       "Chromium could not be started",

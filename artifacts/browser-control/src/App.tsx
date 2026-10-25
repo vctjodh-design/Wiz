@@ -473,7 +473,7 @@ function BrowserConsole() {
                 <span className="text-[15px] font-extrabold tracking-[-.04em]">Browser Control</span>
                 <span className="rounded-full border border-[#deddd3] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[.16em] text-[#7e827d]">Remote session</span>
               </div>
-              <p className="mt-0.5 hidden text-[11px] text-[#858780] sm:block">A real browser, operated from here.</p>
+              <p className="mt-0.5 hidden text-[11px] text-[#858780] sm:block">Installed Chromium, operated remotely.</p>
             </div>
           </div>
           <div className="flex items-center gap-2.5" aria-live="polite">
@@ -504,7 +504,7 @@ function BrowserConsole() {
             <p className="mono mb-2 text-[10px] uppercase tracking-[.19em] text-[#9b7160]">Hands-on browsing console</p>
             <h1 className="text-[26px] font-extrabold leading-tight tracking-[-.055em] sm:text-[34px]">Your browser, at a distance.</h1>
             <p className="mt-2 max-w-[610px] text-[13px] leading-6 text-[#727973]">
-              Open a live Chromium session and work through the page directly. No extensions or third-party integrations.
+              Open the server’s installed Chromium browser and work through pages remotely. It uses an isolated server profile, not your device’s browser profile.
             </p>
           </div>
           {state && (
@@ -626,7 +626,7 @@ function BrowserConsole() {
             <div className="browser-shell flex min-h-[46px] items-center justify-between px-4 sm:px-5">
               <div className="flex items-center gap-2.5">
                 <span className="flex gap-1.5" aria-hidden="true"><span className="size-2 rounded-full bg-[#d87859]" /><span className="size-2 rounded-full bg-[#e1b457]" /><span className="size-2 rounded-full bg-[#64a287]" /></span>
-                <span className="ml-1 text-[10px] font-semibold tracking-wide text-[#d0d8d9]">REMOTE CHROMIUM</span>
+                <span className="ml-1 text-[10px] font-semibold tracking-wide text-[#d0d8d9]">SYSTEM CHROMIUM</span>
               </div>
               <div className="mono text-[9px] uppercase tracking-[.14em] text-[#9cabb0]">Live viewport</div>
             </div>

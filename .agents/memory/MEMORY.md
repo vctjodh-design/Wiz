@@ -1,4 +1,5 @@
 - [Browser egress safety](browser-egress-safety.md) — keep Chromium traffic behind the validating, DNS-pinning proxy; don't bypass private-network checks.
+- [Remote browser engine](remote-browser-engine.md) — use an installed browser engine on the server for browser testing; it is remote and does not share the user's local profile.
 - [Synced browser tabs](synced-browser-tabs.md) — keep mirrored browsing capped at the user's chosen 25-tab limit.
 - [TMP scoring rules](tmp-scoring-rules.md) — show overall results TMP alongside separate scoring/conceding averages; keep odds TMP distinct.
 - [KickoffScore fixture details](kickoffscore-fixture-data.md) — fixture records bundle events, lineups, player stats, and full/half statistics; completed-match odds may be absent.
